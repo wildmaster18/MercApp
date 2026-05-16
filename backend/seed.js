@@ -1,118 +1,123 @@
-const { randomUUID } = require('crypto')
-const fs = require('fs')
-const path = require('path')
+// Script de semilla. Crea 4 categorías y 10 productos de ejemplo.
+require('dotenv').config();
+const mongoose = require('mongoose');
+const Producto = require('./models/Producto');
+const Categoria = require('./models/Categoria');
 
-const RUTA_DB = path.join(__dirname, 'src/data/db.json')
+const categoriasIniciales = [
+    { idCat: 1, nombre: 'Electrónica' },
+    { idCat: 2, nombre: 'Hogar' },
+    { idCat: 3, nombre: 'Deportes' },
+    { idCat: 4, nombre: 'Ropa' }
+];
 
-// Define las 4 categorias con ID generado automaticamente
-const categorias = [
-    { id: randomUUID(), name: 'Electronica' },
-    { id: randomUUID(), name: 'Ropa y Accesorios' },
-    { id: randomUUID(), name: 'Hogar y Cocina' },
-    { id: randomUUID(), name: 'Deportes' }
-]
-
-// Define 10 productos con referencias a las categorias creadas arriba
-const productos = [
+const productosIniciales = [
     {
-        id: randomUUID(),
-        name: 'Audifonos Bluetooth Pro',
-        description: 'Audifonos inalambricos con cancelacion de ruido activa y 30 horas de bateria.',
-        price: 89.99,
-        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-        categoryId: categorias[0].id,
-        stock: 25
+        nombre: 'Laptop HP Pavilion 15',
+        precio: 899.99,
+        descripcion: 'Laptop con procesador Intel Core i5, 8 GB de RAM y disco SSD de 512 GB. Ideal para estudiantes y trabajo de oficina.',
+        imagen: '',
+        stock: 12,
+        categoryId: 1
     },
     {
-        id: randomUUID(),
-        name: 'Smartwatch Serie X',
-        description: 'Reloj inteligente con monitor de frecuencia cardiaca, GPS y pantalla AMOLED.',
-        price: 149.99,
-        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-        categoryId: categorias[0].id,
-        stock: 15
+        nombre: 'Smartphone Samsung Galaxy A54',
+        precio: 449.0,
+        descripcion: 'Teléfono inteligente con pantalla AMOLED de 6.4 pulgadas, cámara triple de 50 MP y batería de 5000 mAh.',
+        imagen: '',
+        stock: 25,
+        categoryId: 1
     },
     {
-        id: randomUUID(),
-        name: 'Teclado Mecanico RGB',
-        description: 'Teclado mecanico con switches Red, retroiluminacion RGB y construccion en aluminio.',
-        price: 75.50,
-        imageUrl: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400',
-        categoryId: categorias[0].id,
-        stock: 20
+        nombre: 'Audífonos Sony WH-CH520',
+        precio: 59.99,
+        descripcion: 'Audífonos inalámbricos Bluetooth con cancelación de ruido pasiva y hasta 50 horas de batería.',
+        imagen: '',
+        stock: 40,
+        categoryId: 1
     },
     {
-        id: randomUUID(),
-        name: 'Camiseta Deportiva Dry-Fit',
-        description: 'Camiseta de alto rendimiento con tecnologia de absorcion de humedad.',
-        price: 24.99,
-        imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
-        categoryId: categorias[1].id,
-        stock: 50
+        nombre: 'Cafetera Oster 12 tazas',
+        precio: 75.5,
+        descripcion: 'Cafetera programable de 12 tazas con jarra de vidrio y filtro permanente lavable.',
+        imagen: '',
+        stock: 18,
+        categoryId: 2
     },
     {
-        id: randomUUID(),
-        name: 'Mochila Urbana 25L',
-        description: 'Mochila con compartimento para laptop de 15 pulgadas, puerto USB y tela impermeable.',
-        price: 45.00,
-        imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-        categoryId: categorias[1].id,
-        stock: 30
+        nombre: 'Juego de sábanas king size',
+        precio: 39.9,
+        descripcion: 'Juego de sábanas de microfibra para cama king size, incluye 2 fundas de almohada y sábana ajustable.',
+        imagen: '',
+        stock: 30,
+        categoryId: 2
     },
     {
-        id: randomUUID(),
-        name: 'Zapatillas Running Air',
-        description: 'Zapatillas ultralivianas para correr con amortiguacion de gel y suela antideslizante.',
-        price: 95.00,
-        imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-        categoryId: categorias[1].id,
-        stock: 18
+        nombre: 'Balón de fútbol Adidas',
+        precio: 29.99,
+        descripcion: 'Balón profesional Adidas tamaño 5, cosido a mano, ideal para partidos en cancha sintética o de césped natural.',
+        imagen: '',
+        stock: 50,
+        categoryId: 3
     },
     {
-        id: randomUUID(),
-        name: 'Licuadora de Alta Potencia',
-        description: 'Licuadora de 1200W con 6 velocidades, vaso de vidrio de 2 litros y funcion pulso.',
-        price: 59.99,
-        imageUrl: 'https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=400',
-        categoryId: categorias[2].id,
-        stock: 12
+        nombre: 'Bicicleta MTB Aro 27.5',
+        precio: 379.0,
+        descripcion: 'Bicicleta de montaña con marco de aluminio, 21 cambios Shimano y suspensión delantera.',
+        imagen: '',
+        stock: 8,
+        categoryId: 3
     },
     {
-        id: randomUUID(),
-        name: 'Set de Ollas Antiadherentes',
-        description: 'Juego de 5 piezas con recubrimiento antiadherente libre de PFOA.',
-        price: 89.00,
-        imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
-        categoryId: categorias[2].id,
-        stock: 8
+        nombre: 'Chompa deportiva Nike',
+        precio: 65.0,
+        descripcion: 'Chompa deportiva con capucha, fabricada en algodón con poliéster reciclado, disponible en varias tallas.',
+        imagen: '',
+        stock: 22,
+        categoryId: 4
     },
     {
-        id: randomUUID(),
-        name: 'Pelota de Futbol Pro',
-        description: 'Balon oficial talla 5 en cuero sintetico de alta durabilidad.',
-        price: 35.00,
-        imageUrl: 'https://images.unsplash.com/photo-1552056776-9b5657aca328?w=400',
-        categoryId: categorias[3].id,
-        stock: 40
+        nombre: 'Zapatos Adidas Runfalcon 3',
+        precio: 85.0,
+        descripcion: 'Zapatos para correr con suela ligera EVA y diseño transpirable, perfectos para entrenamientos diarios.',
+        imagen: '',
+        stock: 35,
+        categoryId: 4
     },
     {
-        id: randomUUID(),
-        name: 'Set de Mancuernas Ajustables',
-        description: 'Par de mancuernas de 2 a 24 kg con sistema de ajuste rapido e incluye rack.',
-        price: 120.00,
-        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
-        categoryId: categorias[3].id,
-        stock: 10
+        nombre: 'Pantalón jeans clásico',
+        precio: 42.5,
+        descripcion: 'Pantalón jeans de corte recto, fabricado en mezclilla resistente, disponible en talla 28 a 38.',
+        imagen: '',
+        stock: 27,
+        categoryId: 4
     }
-]
+];
 
-// Verifica que la carpeta data exista antes de escribir
-const carpetaData = path.dirname(RUTA_DB)
-if (!fs.existsSync(carpetaData)) {
-    fs.mkdirSync(carpetaData, { recursive: true })
+async function ejecutarSemilla() {
+    try {
+        const urlBD = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/mercapp';
+        await mongoose.connect(urlBD);
+        console.log('Conexión a MongoDB establecida');
+
+        // Limpia las colecciones para evitar duplicados al volver a ejecutar
+        await Categoria.deleteMany({});
+        await Producto.deleteMany({});
+        console.log('Colecciones limpias');
+
+        await Categoria.insertMany(categoriasIniciales);
+        console.log('Se insertaron ' + categoriasIniciales.length + ' categorías');
+
+        await Producto.insertMany(productosIniciales);
+        console.log('Se insertaron ' + productosIniciales.length + ' productos');
+
+        await mongoose.disconnect();
+        console.log('Semilla completada con éxito');
+        process.exit(0);
+    } catch (error) {
+        console.error('Error al ejecutar la semilla:', error.message);
+        process.exit(1);
+    }
 }
 
-// Guarda las categorias y productos en el archivo de base de datos
-const db = { productos, categorias }
-fs.writeFileSync(RUTA_DB, JSON.stringify(db, null, 2), 'utf8')
-console.log(`Semilla completada: ${categorias.length} categorias y ${productos.length} productos insertados.`)
+ejecutarSemilla();
