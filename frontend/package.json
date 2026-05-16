@@ -1,0 +1,20 @@
+{
+  "name": "mercapp-frontend",
+  "version": "1.0.0",
+  "description": "SPA Vue 3 que consume el API REST de MercApp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.34",
+    "vue-router": "^5.0.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.7",
+    "vite": "^8.0.13"
+  }
+}
