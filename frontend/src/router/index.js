@@ -9,6 +9,12 @@ import ProductoForm from '@/views/ProductoForm.vue'
 const CarritoView = () => import('@/views/CarritoView.vue')
 const AboutView = () => import('@/views/AboutView.vue')
 const NotFoundView = () => import('@/views/NotFoundView.vue')
+const LoginView = () => import('@/views/LoginView.vue')
+const RegistroView = () => import('@/views/RegistroView.vue')
+const ChatView = () => import('@/views/ChatView.vue')
+
+// Rutas que no requieren autenticación
+const rutasPublicas = ['login', 'register']
 
 const rutas = [
     {
@@ -16,6 +22,24 @@ const rutas = [
         name: 'home',
         component: Home,
         meta: { titulo: 'Inicio - MercApp' }
+    },
+    {
+        path: '/login',
+        name: 'login',
+        component: LoginView,
+        meta: { titulo: 'Iniciar sesion - MercApp' }
+    },
+    {
+        path: '/register',
+        name: 'register',
+        component: RegistroView,
+        meta: { titulo: 'Registro - MercApp' }
+    },
+    {
+        path: '/chat',
+        name: 'chat',
+        component: ChatView,
+        meta: { titulo: 'Chat - MercApp' }
     },
     {
         path: '/product/new',
@@ -58,6 +82,7 @@ const rutas = [
 const router = createRouter({
     history: createWebHistory(),
     routes: rutas,
+    // Restaura la posición guardada al volver atrás; sube al tope en navegación nueva
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {
             return savedPosition
@@ -66,10 +91,23 @@ const router = createRouter({
     }
 })
 
-// Actualiza el título de la página al cambiar de ruta
+// Verifica autenticación antes de cada navegación
 router.beforeEach((to, from, next) => {
     document.title = to.meta.titulo || 'MercApp'
-    next()
+
+    // Permite acceso libre a rutas públicas
+    if (rutasPublicas.includes(to.name)) {
+        next()
+        return
+    }
+
+    // Revisa si hay un usuario guardado en localStorage
+    const usuario = localStorage.getItem('mercapp_usuario')
+    if (!usuario) {
+        next({ name: 'login' })
+    } else {
+        next()
+    }
 })
 
 export default router

@@ -1,4 +1,4 @@
-// Servidor principal de MercApp
+// Servidor principal de MercApp: API REST + vistas Handlebars + chat Socket.io
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -16,7 +16,7 @@ const rutasProductos = require('./routes/prodRoutes');
 const rutasChat = require('./routes/chatRoutes');
 const rutasApi = require('./routes/api');
 
-// Crea la aplicación de Express y el servidor HTTP
+// Crea la aplicación de Express y el servidor HTTP para Socket.io
 const app = express();
 const servidor = http.createServer(app);
 const io = socketIo(servidor, {
@@ -28,16 +28,13 @@ const io = socketIo(servidor, {
 
 const puerto = process.env.PORT || 3000;
 
-// Conexión a MongoDB
-conectarBD();
-
 // Habilita CORS para que el frontend Vue pueda consumir el API
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }));
 
-// Configura el motor de plantillas Handlebars
+// Configura el motor de plantillas Handlebars para las vistas del backend
 app.engine(
     'hbs',
     engine({
@@ -68,7 +65,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Manejo de sesiones de usuario
+// Manejo de sesiones de usuario para las vistas Handlebars
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'claveSecretaMercApp2026',
@@ -131,6 +128,7 @@ io.on('connection', (socket) => {
         io.emit('chatMensaje', datosMensaje);
     });
 
+    // Notifica cuando un usuario cierra la conexión
     socket.on('disconnect', () => {
         if (socket.nomUsu) {
             io.emit('mensajeSistema', socket.nomUsu + ' ha salido del chat');
@@ -139,7 +137,19 @@ io.on('connection', (socket) => {
     });
 });
 
-servidor.listen(puerto, () => {
-    console.log('Servidor corriendo en http://localhost:' + puerto);
-    console.log('API REST disponible en http://localhost:' + puerto + '/api');
-});
+// Conexión a MongoDB y arranque del servidor
+async function iniciarServidor() {
+    try {
+        await conectarBD();
+
+        servidor.listen(puerto, () => {
+            console.log('Servidor corriendo en http://localhost:' + puerto);
+            console.log('API REST disponible en http://localhost:' + puerto + '/api');
+        });
+    } catch (error) {
+        console.error('No se pudo iniciar el servidor:', error.message);
+        process.exit(1);
+    }
+}
+
+iniciarServidor();

@@ -35,7 +35,7 @@
                             v-model.number="datosForm.price"
                             type="number"
                             step="0.01"
-                            min="0"
+                            min="0.01"
                             class="input-form"
                             :class="{ 'input-error': errores.price }"
                             placeholder="0.00"
@@ -91,7 +91,7 @@
                     </div>
 
                     <div class="campo">
-                        <label class="etiqueta-campo" for="imageUrl">URL de imagen <span v-if="!esEdicion" class="obligatorio">*</span></label>
+                        <label class="etiqueta-campo" for="imageUrl">URL de imagen</label>
                         <input
                             id="imageUrl"
                             v-model="datosForm.imageUrl"
@@ -102,7 +102,7 @@
                             @blur="validarCampo('imageUrl')"
                         />
                         <span v-if="errores.imageUrl" class="texto-error">{{ errores.imageUrl }}</span>
-                        <span class="texto-ayuda">Indica una URL válida. La imagen se carga al guardar.</span>
+                        <span class="texto-ayuda">Indica una URL válida (http/https) o sube un archivo de imagen.</span>
                     </div>
 
                     <div class="campo">
@@ -203,13 +203,16 @@ function validarCampo(campo) {
             errores.stock = 'El stock no puede ser negativo'
         }
     } else if (campo === 'imageUrl') {
-        // En creación la URL es obligatoria; en edición solo se valida si tiene contenido
+        // En creación se requiere URL o archivo; en edición ambos son opcionales
         const valor = (datosForm.imageUrl || '').trim()
-        if (!esEdicion.value && valor === '') {
-            errores.imageUrl = 'La URL de imagen es obligatoria'
+        if (!esEdicion.value && valor === '' && !datosForm.archivo) {
+            errores.imageUrl = 'Debes indicar una URL o subir un archivo de imagen'
         } else if (valor !== '') {
             try {
-                new URL(valor)
+                const url = new URL(valor)
+                if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                    errores.imageUrl = 'La URL debe iniciar con http o https'
+                }
             } catch (e) {
                 errores.imageUrl = 'Ingresa una URL válida'
             }
@@ -258,6 +261,8 @@ function manejarArchivo(evento) {
     }
 
     datosForm.archivo = archivo
+    // Al subir archivo válido, ya no se necesita la URL
+    errores.imageUrl = ''
 }
 
 // Carga los datos del producto existente cuando estamos en modo edición
@@ -270,7 +275,14 @@ async function cargarProductoExistente(id) {
         datosForm.description = existente.description
         datosForm.categoryId = existente.categoryId || 0
         datosForm.stock = existente.stock || 0
-        datosForm.imageUrl = existente.imageUrl || ''
+        // Solo pre-llena imageUrl si es una URL externa que el usuario escribió;
+        // las URLs generadas por el servidor no se copian al campo
+        const urlExistente = existente.imageUrl || ''
+        if (urlExistente.includes('/uploads/') || urlExistente.includes('/images/default')) {
+            datosForm.imageUrl = ''
+        } else {
+            datosForm.imageUrl = urlExistente
+        }
     } catch (err) {
         errorGeneral.value = 'No se pudo cargar el producto'
     } finally {
@@ -294,6 +306,10 @@ async function manejarEnvio() {
         formData.append('description', datosForm.description.trim())
         formData.append('categoryId', Number(datosForm.categoryId))
         formData.append('stock', Number(datosForm.stock))
+        // Envía la URL externa solo cuando el usuario la completó
+        if (datosForm.imageUrl.trim()) {
+            formData.append('imageUrl', datosForm.imageUrl.trim())
+        }
         if (datosForm.archivo) {
             formData.append('imagen', datosForm.archivo)
         }
@@ -322,62 +338,57 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.pagina-form {
-    padding: 2rem 0;
-}
+.pagina-form { padding: 2rem 0; }
 
 .enlace-volver {
     display: inline-block;
     margin-bottom: 1.5rem;
-    color: var(--color-oscuro);
+    color: var(--color-gris);
     text-decoration: none;
     font-weight: 500;
+    font-size: 0.9rem;
+    transition: var(--transicion);
 }
+.enlace-volver:hover { color: var(--color-primario); }
 
 .contenedor-form {
-    max-width: 700px;
+    max-width: 640px;
     margin: 0 auto;
-    background-color: white;
-    padding: 2.5rem;
+    background-color: var(--color-tarjeta);
+    padding: 2rem;
     border-radius: var(--radio-borde);
     box-shadow: var(--sombra-base);
 }
 
 .titulo-form {
+    font-family: var(--fuente-titulo);
     color: var(--color-oscuro);
     margin-bottom: 1.5rem;
+    font-size: 1.5rem;
 }
 
-.formulario {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
+.formulario { display: flex; flex-direction: column; gap: 1.1rem; }
 
-.campo {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
+.campo { display: flex; flex-direction: column; gap: 0.35rem; }
 
 .etiqueta-campo {
     font-weight: 600;
     color: var(--color-oscuro);
+    font-size: 0.88rem;
 }
 
-.obligatorio {
-    color: var(--color-peligro);
-}
+.obligatorio { color: var(--color-peligro); }
 
 .input-form,
 .textarea-form,
 .select-form {
-    padding: 0.7rem;
-    border: 2px solid var(--color-claro);
-    border-radius: var(--radio-borde);
-    font-size: 1rem;
-    font-family: inherit;
+    padding: 0.65rem 0.8rem;
+    border: 1.5px solid var(--color-claro);
+    border-radius: var(--radio-pequeno);
+    font-size: 0.95rem;
+    font-family: var(--fuente-cuerpo);
     transition: var(--transicion);
+    background-color: var(--color-fondo);
 }
 
 .input-form:focus,
@@ -385,45 +396,24 @@ onMounted(async () => {
 .select-form:focus {
     outline: none;
     border-color: var(--color-primario);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.08);
 }
 
-.input-error {
-    border-color: var(--color-peligro);
-}
+.input-error { border-color: var(--color-peligro); }
 
-.texto-error {
-    color: var(--color-peligro);
-    font-size: 0.85rem;
-}
+.texto-error { color: var(--color-peligro); font-size: 0.8rem; }
 
-.texto-ayuda {
-    color: var(--color-gris);
-    font-size: 0.85rem;
-}
+.texto-ayuda { color: var(--color-gris); font-size: 0.8rem; }
 
-.estado-carga {
-    text-align: center;
-    padding: 2rem 0;
-}
+.estado-carga { text-align: center; padding: 2rem 0; }
 
-.acciones-form {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-}
+.acciones-form { display: flex; gap: 0.75rem; margin-top: 1rem; }
 
-.btn-grande {
-    padding: 0.85rem 1.5rem;
-    font-size: 1rem;
-    flex: 1;
-}
+.btn-grande { padding: 0.8rem 1.5rem; font-size: 0.95rem; flex: 1; }
 
 @media (max-width: 768px) {
-    .contenedor-form {
-        padding: 1.5rem;
-    }
-    .acciones-form {
-        flex-direction: column;
-    }
+    .contenedor-form { padding: 1.25rem; }
+    .acciones-form { flex-direction: column; }
 }
 </style>

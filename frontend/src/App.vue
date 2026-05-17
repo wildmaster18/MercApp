@@ -13,6 +13,7 @@
 </template>
 
 <script setup>
+// Componente raíz: monta la barra de navegación y envuelve las vistas con Suspense
 import NavBar from '@/components/NavBar.vue'
 import LoadingFallback from '@/components/LoadingFallback.vue'
 </script>

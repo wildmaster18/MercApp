@@ -8,16 +8,15 @@
                     class="imagen-producto"
                     @error="manejarErrorImagen"
                 />
+                <span class="badge-stock" :class="sinStock ? 'agotado' : 'disponible'">
+                    {{ sinStock ? 'Agotado' : product.stock + ' uds' }}
+                </span>
             </div>
             <div class="info-producto">
-                <h3 class="nombre-producto">{{ product.name }}</h3>
-                <p class="descripcion-producto">{{ acortarTexto(product.description, 60) }}</p>
-                <div class="precio-producto">${{ formatearPrecio(product.price) }}</div>
-                <div class="stock-producto">
-                    <span v-if="product.stock > 0" class="stock-disponible">
-                        {{ product.stock }} disponibles
-                    </span>
-                    <span v-else class="stock-agotado">Sin stock</span>
+                <p class="nombre-producto">{{ product.name }}</p>
+                <p class="descripcion-producto">{{ acortarTexto(product.description, 50) }}</p>
+                <div class="pie-producto">
+                    <span class="precio-producto">${{ formatearPrecio(product.price) }}</span>
                 </div>
             </div>
         </router-link>
@@ -25,13 +24,12 @@
         <div class="acciones-producto">
             <button
                 @click.stop="manejarAgregar"
-                class="btn btn-primario btn-agregar"
+                class="btn-card btn-agregar-card"
                 :disabled="sinStock"
             >
-                <span v-if="sinStock">Sin stock</span>
-                <span v-else>Agregar</span>
+                {{ sinStock ? 'Sin stock' : 'Agregar' }}
             </button>
-            <router-link :to="`/product/${product.id}/edit`" class="btn-icono">
+            <router-link :to="`/product/${product.id}/edit`" class="btn-card btn-editar-card">
                 Editar
             </router-link>
         </div>
@@ -88,7 +86,7 @@ function manejarErrorImagen(evento) {
 
 <style scoped>
 .tarjeta-producto {
-    background-color: white;
+    background-color: var(--color-tarjeta);
     border-radius: var(--radio-borde);
     box-shadow: var(--sombra-base);
     overflow: hidden;
@@ -99,8 +97,8 @@ function manejarErrorImagen(evento) {
 }
 
 .tarjeta-producto:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--sombra-media);
+    transform: translateY(-3px);
 }
 
 .enlace-producto {
@@ -113,88 +111,119 @@ function manejarErrorImagen(evento) {
 
 .imagen-wrapper {
     width: 100%;
-    height: 220px;
+    height: 180px;
     overflow: hidden;
-    background-color: var(--color-claro);
+    background-color: var(--color-fondo);
+    position: relative;
 }
 
 .imagen-producto {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: var(--transicion);
+    transition: transform 0.4s ease;
 }
 
 .tarjeta-producto:hover .imagen-producto {
-    transform: scale(1.05);
+    transform: scale(1.06);
+}
+
+.badge-stock {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.badge-stock.disponible {
+    background-color: rgba(5, 150, 105, 0.9);
+    color: white;
+}
+
+.badge-stock.agotado {
+    background-color: rgba(220, 38, 38, 0.9);
+    color: white;
 }
 
 .info-producto {
-    padding: 1.25rem;
+    padding: 1rem;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
 .nombre-producto {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     color: var(--color-oscuro);
-    margin-bottom: 0.5rem;
     font-weight: 600;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
 }
 
 .descripcion-producto {
     color: var(--color-gris);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    margin-bottom: 0.75rem;
     flex: 1;
+    line-height: 1.4;
+}
+
+.pie-producto {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .precio-producto {
-    font-size: 1.4rem;
-    color: var(--color-secundario);
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.stock-producto {
-    font-size: 0.85rem;
-}
-
-.stock-disponible {
-    color: var(--color-secundario);
-    font-weight: 500;
-}
-
-.stock-agotado {
-    color: var(--color-peligro);
-    font-weight: 500;
+    font-size: 1.2rem;
+    color: var(--color-primario);
+    font-weight: 700;
 }
 
 .acciones-producto {
-    padding: 0 1.25rem 1.25rem;
+    padding: 0 1rem 1rem;
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
-.btn-agregar {
-    flex: 1;
-    padding: 0.6rem;
+.btn-card {
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--radio-pequeno);
+    cursor: pointer;
+    font-size: 0.82rem;
     font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.btn-icono {
-    background-color: var(--color-aviso);
-    color: white;
-    padding: 0.6rem 1rem;
-    border-radius: var(--radio-borde);
-    text-decoration: none;
-    font-size: 0.9rem;
     transition: var(--transicion);
+    text-decoration: none;
+    text-align: center;
+    font-family: var(--fuente-cuerpo);
 }
 
-.btn-icono:hover {
-    background-color: #d68910;
+.btn-agregar-card {
+    flex: 1;
+    background-color: var(--color-primario);
+    color: white;
+}
+
+.btn-agregar-card:hover:not(:disabled) {
+    background-color: var(--color-primario-hover);
+}
+
+.btn-agregar-card:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-editar-card {
+    background-color: var(--color-fondo);
+    color: var(--color-oscuro);
+}
+
+.btn-editar-card:hover {
+    background-color: var(--color-claro);
 }
 </style>

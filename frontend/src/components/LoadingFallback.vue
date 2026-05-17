@@ -16,21 +16,21 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #f8f9fa;
+    background-color: var(--color-fondo);
 }
 
 .spinner-grande {
-    border: 6px solid var(--color-claro);
-    border-top: 6px solid var(--color-primario);
+    border: 4px solid var(--color-claro);
+    border-top: 4px solid var(--color-primario);
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: girar 1s linear infinite;
-    margin-bottom: 20px;
+    width: 48px;
+    height: 48px;
+    animation: girar 0.8s linear infinite;
+    margin-bottom: 16px;
 }
 
 .contenedor-carga p {
     color: var(--color-gris);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 </style>

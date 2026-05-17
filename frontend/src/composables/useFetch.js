@@ -1,13 +1,22 @@
 import { ref } from 'vue'
 
-// Composable genérico para realizar peticiones HTTP con reintento simple
+// Composable genérico para realizar peticiones HTTP con reintento y cancelación real
 export function useFetch() {
     const data = ref(null)
     const loading = ref(false)
     const error = ref(null)
 
+    // Controlador que permite abortar la petición en curso
+    let controladorActual = null
+
     // Realiza la petición; si falla intenta una vez más antes de propagar el error
     async function fetchData(url, opciones = {}, reintentos = 1) {
+        // Cancela cualquier petición anterior que siga en curso
+        if (controladorActual) {
+            controladorActual.abort()
+        }
+        controladorActual = new AbortController()
+
         loading.value = true
         error.value = null
         data.value = null
@@ -21,6 +30,7 @@ export function useFetch() {
                         'Content-Type': 'application/json',
                         ...opciones.headers
                     },
+                    signal: controladorActual.signal,
                     ...opciones
                 })
 
@@ -33,6 +43,11 @@ export function useFetch() {
                 loading.value = false
                 return resultado
             } catch (err) {
+                // Si la petición fue cancelada por el usuario, no se reintenta
+                if (err.name === 'AbortError') {
+                    loading.value = false
+                    return null
+                }
                 ultimoError = err
                 if (i < reintentos) {
                     // Espera medio segundo antes de reintentar
@@ -46,8 +61,12 @@ export function useFetch() {
         throw ultimoError
     }
 
-    // Marcador para poder detener la operación desde el componente
+    // Aborta la petición HTTP en curso mediante AbortController
     function cancelar() {
+        if (controladorActual) {
+            controladorActual.abort()
+            controladorActual = null
+        }
         loading.value = false
     }
 

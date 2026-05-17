@@ -52,6 +52,8 @@ export function useProducts() {
             const resultado = await fetchData(URL_API + '/categories', {}, 1)
             categories.value = resultado
         } catch (err) {
+            // Falla silenciosa: el filtro por categoría quedará deshabilitado
+            console.error('Error al cargar categorías:', err.message)
             categories.value = []
         }
     }

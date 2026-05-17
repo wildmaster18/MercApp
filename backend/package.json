@@ -4,11 +4,15 @@
   "description": "API REST de MercApp con Node.js, Express, MongoDB y Socket.io",
   "main": "app.js",
   "scripts": {
+    "dev": "nodemon app.js",
     "start": "node app.js",
     "seed": "node seed.js"
   },
-  "author": "Mateo Carrera",
+  "author": "Mateo Carranza",
   "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
