@@ -5,7 +5,7 @@ Aplicación web para gestión y venta de productos
 **Estudiante:** Mateo Carranza  
 **Carrera:** Ingeniería en Software  
 **Materia:** Aplicaciones Web  
-**Repositorio:** [github.com/wildmaster18/MercApp.gitp](https://github.com/wildmaster18/MercApp.git)
+**Repositorio:** [github.com/wildmaster18/MercApp.git](https://github.com/wildmaster18/MercApp.git)
 
 ---
 
